@@ -1,53 +1,61 @@
-# Run this app with `python app.py` and
-# visit http://127.0.0.1:8050/ in your web browser.
+from dash import Dash, dcc, html, Input, Output, callback
+import dash_bootstrap_components as dbc
+from pages import home, page1, page2
 
-from dash import Dash, html, dcc
-import plotly.express as px
-import pandas as pd
+app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
-app = Dash(__name__)
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "12rem",
+    "padding": "2rem 1rem",
+    "background-color": "#f8f9fa",
+}
 
-def generate_table(dataframe, max_rows=10):
-    return html.Table([
-        html.Thead(
-            html.Tr([html.Th(col) for col in dataframe.columns])
+# the styles for the main content position it to the right of the sidebar and
+# add some padding.
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+}
+
+sidebar = html.Div(
+    [
+        html.H2("Sidebar", className="display-5"),
+        html.Hr(),
+        dbc.Nav(
+            [
+                dbc.NavLink("Home", href="/", active="exact"),
+                dbc.NavLink("Page 1", href="/page1", active="exact"),
+                dbc.NavLink("Page 2", href="/page2", active="exact"),
+            ],
+            vertical=True,
+            pills=True,
         ),
-        html.Tbody([
-            html.Tr([
-                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-            ]) for i in range(min(len(dataframe), max_rows))
-        ])
-    ])
+    ],
+    style=SIDEBAR_STYLE,
+)
 
-# assume you have a "long-form" data frame
-# see https://plotly.com/python/px-arguments/ for more options
-df = pd.read_csv('data/amazon_iphone13_phone_cases_25_1_2022.csv')
+content = html.Div(id="page-content", style=CONTENT_STYLE)
 
-dfg=df.groupby('Brand').count().reset_index()
-dfg=dfg.rename(columns={"Title": "Count"})
-
-fig = px.bar(dfg, x="Brand", y="Count", barmode='stack')
-
-app.layout = html.Div(children=[
-    dcc.Tabs([
-        dcc.Tab(label='Tab one', ),
-        dcc.Tab(label='Tab two'),
-        dcc.Tab(label='Tab three'),
-    ]),
-
-    html.H1(children='Dashboard'),
-
-    html.Div(children='''
-        Dash: A web application framework for your data.
-    '''),
-
-    dcc.Graph(id='life-exp-vs-gdp',
-        figure=fig),
-
-    generate_table(df)
+app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 
 
-])
+@callback(Output('page-content', 'children'),
+          Input('url', 'pathname'))
+def display_page(pathname):
+    if pathname == '/':
+        return home.layout
+    elif pathname == '/page1':
+        return page1.layout
+    elif pathname == '/page2':
+        return page2.layout
+    else:
+        return '404'
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
