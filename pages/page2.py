@@ -1,4 +1,8 @@
 from dash import dcc, html, Input, Output, callback
+import plotly.express as px
+
+df = px.data.iris()  # iris is a pandas DataFrame
+fig = px.scatter(df, x="sepal_width", y="sepal_length")
 
 layout = html.Div([
     html.H3('Page 2'),
@@ -7,6 +11,7 @@ layout = html.Div([
         id='page-2-dropdown'
     ),
     html.Div(id='page-2-display-value'),
+    dcc.Graph(figure=fig),
     dcc.Link('Go to Page 1', href='/page1')
 ])
 

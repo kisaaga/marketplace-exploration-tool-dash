@@ -5,5 +5,3 @@ layout = html.Div([
     html.Br(),
     dcc.Link('Go to Page 2', href='/page2'),
 ])
-
-
