@@ -7,18 +7,47 @@ fig = px.scatter(df, x="sepal_width", y="sepal_length")
 
 layout = html.Div([
     html.H1('Dashboard'),
-    dbc.Card(
-        dbc.CardBody(
-            [
-                html.H3("Units Sold", className="card-title"),
-                html.H4(
+    dbc.Row(
+        [
+            dbc.Card(
+                dbc.CardBody(
                     [
-                        "1943",
-                    ],
-                    className="card-text",
+                        html.H3("Units Sold", className="card-title"),
+                        html.H4(
+                            [
+                                "1943",
+                            ],
+                            className="card-text",
+                        ),
+                    ]
                 ),
-            ]
-        ),
-        className="w-25",
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H3("Units Sold", className="card-title"),
+                        html.H4(
+                            [
+                                "1943",
+                            ],
+                            className="card-text",
+                        ),
+                    ]
+                ),
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H3("Units Sold", className="card-title"),
+                        html.H4(
+                            [
+                                "1943",
+                            ],
+                            className="card-text",
+                        ),
+                    ]
+                ),
+            ),
+        ]
     ),
 ])
