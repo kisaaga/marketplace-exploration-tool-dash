@@ -1,6 +1,6 @@
 from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
-from pages import home, page1, page2
+from pages import dashboard, sales, inventory, stats, finances, shipping, messages, reviews, settings
 
 app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
@@ -17,20 +17,26 @@ SIDEBAR_STYLE = {
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
 CONTENT_STYLE = {
-    "margin-left": "18rem",
+    "margin-left": "12rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
 
 sidebar = html.Div(
     [
-        html.H2("Sidebar", className="display-5"),
+        html.H1("Dash", className="display-5"),
         html.Hr(),
         dbc.Nav(
             [
-                dbc.NavLink("Home", href="/", active="exact"),
-                dbc.NavLink("Page 1", href="/page1", active="exact"),
-                dbc.NavLink("Page 2", href="/page2", active="exact"),
+                dbc.NavLink("Dashboard", href="/dashboard", active="exact"),
+                dbc.NavLink("Sales", href="/sales", active="exact"),
+                dbc.NavLink("Inventory", href="/inventory", active="exact"),
+                dbc.NavLink("Stats", href="/stats", active="exact"),
+                dbc.NavLink("Finances", href="/finances", active="exact"),
+                dbc.NavLink("Shipping", href="/shipping", active="exact"),
+                dbc.NavLink("Messages", href="/messages", active="exact"),
+                dbc.NavLink("Reviews", href="/reviews", active="exact"),
+                dbc.NavLink("Settings", href="/settings", active="exact"),
             ],
             vertical=True,
             pills=True,
@@ -47,12 +53,24 @@ app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 @callback(Output('page-content', 'children'),
           Input('url', 'pathname'))
 def display_page(pathname):
-    if pathname == '/':
-        return home.layout
-    elif pathname == '/page1':
-        return page1.layout
-    elif pathname == '/page2':
-        return page2.layout
+    if pathname == '/dashboard':
+        return dashboard.layout
+    elif pathname == '/sales':
+        return sales.layout
+    elif pathname == '/inventory':
+        return inventory.layout
+    elif pathname == '/stats':
+        return stats.layout
+    elif pathname == '/finances':
+        return finances.layout
+    elif pathname == '/shipping':
+        return shipping.layout
+    elif pathname == '/messages':
+        return messages.layout
+    elif pathname == '/reviews':
+        return reviews.layout
+    elif pathname == '/settings':
+        return settings.layout
     else:
         return '404'
 

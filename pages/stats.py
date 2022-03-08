@@ -1,22 +1,15 @@
 from dash import dcc, html, Input, Output, callback
 
-
 layout = html.Div([
-    html.H3('Page 1'),
-    dcc.Dropdown(
-        {f'Page 1 - {i}': f'{i}' for i in ['New York City', 'Montreal', 'Los Angeles']},
-        id='page-1-dropdown'
-    ),
-    html.Div(id='page-1-display-value'),
-    dcc.Link('Go to Page 2', href='/page2'),
+    html.H1('Stats'),
     dcc.Graph(
         figure=dict(
             data=[
                 dict(
                     x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                    2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
+                       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
                     y=[219, 146, 112, 127, 124, 180, 236, 207, 236, 263,
-                    350, 430, 474, 526, 488, 537, 500, 439],
+                       350, 430, 474, 526, 488, 537, 500, 439],
                     name='Rest of world',
                     marker=dict(
                         color='rgb(55, 83, 109)'
@@ -24,9 +17,9 @@ layout = html.Div([
                 ),
                 dict(
                     x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                    2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
+                       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
                     y=[16, 13, 10, 11, 28, 37, 43, 55, 56, 88, 105, 156, 270,
-                    299, 340, 403, 549, 499],
+                       299, 340, 403, 549, 499],
                     name='China',
                     marker=dict(
                         color='rgb(26, 118, 255)'
@@ -47,12 +40,4 @@ layout = html.Div([
         id='my-graph'
     )
 
-
 ])
-
-
-@callback(
-    Output('page-1-display-value', 'children'),
-    Input('page-1-dropdown', 'value'))
-def display_value(value):
-    return f'You have selected {value}'
