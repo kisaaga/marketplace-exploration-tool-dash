@@ -9,8 +9,24 @@ fig = px.scatter(df, x="sepal_width", y="sepal_length")
 df = pd.DataFrame(
     {
         "Revenue": ["Amazon Sales", "Refund", "Reimbursements", "Promo Rebates"],
-        "236,500.200": ["180,250.100", "30,357.250", "20,500.50", "10,300.47"],
+        "$236,500.200": ["$180,250.100", "$30,357.250", "$20,500.50", "$10,300.47"],
     }
+)
+
+FutureUnit = 2457
+FutureMargin = "-13%"
+FutureRoi = "-10%"
+
+PastUnit = 1967
+PastMargin = "-16%"
+PastRoi = "-13%"
+
+SearchBar = html.Div(
+    [
+        dbc.Input(id="input", placeholder="Search", type="text"),
+        html.Br(),
+        html.P(id="output"),
+    ]
 )
 
 ListGroup = dbc.ListGroup(
@@ -20,6 +36,244 @@ ListGroup = dbc.ListGroup(
         dbc.ListGroupItem("Item 3", color="secondary"),
     ],
     flush=True,
+),
+
+VerticalNav = dbc.Nav(
+    [
+        dbc.NavItem(
+            SearchBar,
+        ),
+        dbc.DropdownMenu(
+            [dbc.DropdownMenuItem("Update account informations"), dbc.DropdownMenuItem("Sign out")],
+            label="Account",
+            nav=True,
+        ),
+    ]
+)
+CurrentContent = dbc.Row(
+    [
+        dbc.Col(
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Units Sold"), ),
+                    dbc.CardBody(
+                        [
+                            dbc.Row(
+                                dbc.RadioItems(
+                                    options=[
+                                        {"label": "Today", "value": 1},
+                                        {"label": "This Month", "value": 2},
+                                    ],
+                                    value=1,
+                                    id="radioitems-inline-input",
+                                    inline=True,
+                                ),
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Col(
+                                    html.H3(
+                                        [
+                                            PastUnit,
+                                        ],
+                                        className="card-text",
+                                    ),
+                                ),
+                            ),
+                            html.Br(),
+                            dbc.Row(
+                                ListGroup,
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+        dbc.Col(
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Net Margin"), ),
+                    dbc.CardBody(
+                        [
+                            dbc.Row(
+                                dbc.RadioItems(
+                                    options=[
+                                        {"label": "Today", "value": 1},
+                                        {"label": "This Month", "value": 2},
+                                    ],
+                                    value=1,
+                                    id="radioitems-inline-input",
+                                    inline=True,
+                                ),
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Col(
+                                    html.H3(
+                                        [
+                                            PastMargin,
+                                        ],
+                                        className="card-text",
+                                    ),
+                                ),
+                            ),
+                            html.Br(),
+                            dbc.Row(
+                                ListGroup,
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+        dbc.Col(
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("ROI"), ),
+                    dbc.CardBody(
+                        [
+                            dbc.Row(
+                                dbc.RadioItems(
+                                    options=[
+                                        {"label": "Today", "value": 1},
+                                        {"label": "This Month", "value": 2},
+                                    ],
+                                    value=1,
+                                    id="radioitems-inline-input",
+                                    inline=True,
+                                ),
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Col(
+                                    html.H3(
+                                        [
+                                            PastRoi,
+                                        ],
+                                        className="card-text",
+                                    ),
+                                ),
+                            ),
+                            html.Br(),
+                            dbc.Row(
+                                ListGroup,
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+    ]
+),
+
+FutureContent = dbc.Row(
+    [
+        dbc.Col(
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Units Sold"), ),
+                    dbc.CardBody(
+                        [
+                            dbc.Row(
+                                dbc.Col(
+                                    [
+                                        html.H6("Number of months"),
+                                        dcc.Slider(0, 12, 1, value=5, marks=None,
+                                                   tooltip={"placement": "bottom", "always_visible": True}),
+                                    ],
+                                ),
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Col(
+                                    html.H3(
+                                        [
+                                            FutureUnit,
+                                        ],
+                                        className="card-text",
+                                    ),
+                                ),
+                            ),
+                            html.Br(),
+                            dbc.Row(
+                                ListGroup,
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+        dbc.Col(
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Net Margin"), ),
+                    dbc.CardBody(
+                        [
+                            dbc.Row(
+                                dbc.Col(
+                                    [
+                                        html.H6("Number of months"),
+                                        dcc.Slider(0, 12, 1, value=5, marks=None,
+                                                   tooltip={"placement": "bottom", "always_visible": True}),
+                                    ],
+                                ),
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Col(
+                                    html.H3(
+                                        [
+                                            FutureMargin,
+                                        ],
+                                        className="card-text",
+                                    ),
+                                ),
+                            ),
+                            html.Br(),
+                            dbc.Row(
+                                ListGroup,
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+        dbc.Col(
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("ROI"), ),
+                    dbc.CardBody(
+                        [
+                            dbc.Row(
+                                dbc.Col(
+                                    [
+                                        html.H6("Number of months"),
+                                        dcc.Slider(0, 12, 1, value=5, marks=None,
+                                                   tooltip={"placement": "bottom", "always_visible": True}),
+                                    ],
+                                ),
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Col(
+                                    html.H3(
+                                        [
+                                            FutureRoi,
+                                        ],
+                                        className="card-text",
+                                    ),
+                                ),
+                            ),
+                            html.Br(),
+                            dbc.Row(
+                                ListGroup,
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+    ]
 ),
 
 tab1_content = dbc.Card(
@@ -97,6 +351,7 @@ tab1_content = dbc.Card(
                     ),
                 ],
                 justify="between",
+                align="start",
             ),
         ]
     ),
@@ -125,7 +380,7 @@ tab2_content = dbc.Card(
                         dbc.Container(
                             [
                                 dbc.Row(
-                                    html.H4("Cost Over Time"),
+                                    html.H4("Revenue Over Time"),
                                 ),
                                 dbc.Row(
                                     dcc.Graph(
@@ -176,130 +431,35 @@ tab2_content = dbc.Card(
 
 layout = html.Div(
     [
-        html.H1('Dashboard'),
         dbc.Row(
             [
                 dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader(html.H5("Units Sold"), ),
-                            dbc.CardBody(
-                                [
-                                    dbc.Row(
-                                        dbc.RadioItems(
-                                            options=[
-                                                {"label": "Today", "value": 1},
-                                                {"label": "This Month", "value": 2},
-                                            ],
-                                            value=1,
-                                            id="radioitems-inline-input",
-                                            inline=True,
-                                        ),
-                                    ),
-                                    html.Hr(),
-                                    dbc.Row(
-                                        dbc.Col(
-                                            html.H3(
-                                                [
-                                                    "1,967",
-                                                ],
-                                                className="card-text",
-                                            ),
-                                        ),
-                                    ),
-                                    html.Br(),
-                                    dbc.Row(
-                                        ListGroup,
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
+                    html.H1('Dashboard'),
                 ),
                 dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader(html.H5("Net Margin"), ),
-                            dbc.CardBody(
-                                [
-                                    dbc.Row(
-                                        dbc.RadioItems(
-                                            options=[
-                                                {"label": "Today", "value": 1},
-                                                {"label": "This Month", "value": 2},
-                                            ],
-                                            value=1,
-                                            id="radioitems-inline-input",
-                                            inline=True,
-                                        ),
-                                    ),
-                                    html.Hr(),
-                                    dbc.Row(
-                                        dbc.Col(
-                                            html.H3(
-                                                [
-                                                    "-16%",
-                                                ],
-                                                className="card-text",
-                                            ),
-                                        ),
-                                    ),
-                                    html.Br(),
-                                    dbc.Row(
-                                        ListGroup,
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
+                    VerticalNav,
+                    width={"size": 4, "order": 1, "offset": 2},
+
                 ),
-                dbc.Col(
-                    dbc.Card(
-                        [
-                            dbc.CardHeader(html.H5("ROI"), ),
-                            dbc.CardBody(
-                                [
-                                    dbc.Row(
-                                        dbc.RadioItems(
-                                            options=[
-                                                {"label": "Today", "value": 1},
-                                                {"label": "This Month", "value": 2},
-                                            ],
-                                            value=1,
-                                            id="radioitems-inline-input",
-                                            inline=True,
-                                        ),
-                                    ),
-                                    html.Hr(),
-                                    dbc.Row(
-                                        dbc.Col(
-                                            html.H3(
-                                                [
-                                                    "-13%",
-                                                ],
-                                                className="card-text",
-                                            ),
-                                        ),
-                                    ),
-                                    html.Br(),
-                                    dbc.Row(
-                                        ListGroup,
-                                    ),
-                                ],
-                            ),
-                        ],
-                    ),
-                ),
-            ]
+            ],
+            justify="between",
+            align="start",
         ),
+        dbc.Tabs(
+            [
+                dbc.Tab(CurrentContent, label="Past/Current"),
+                dbc.Tab(FutureContent, label="Future"),
+            ],
+        ),
+        html.Div(id="content"),
         html.Br(),
         dbc.Row(
             dbc.Tabs(
                 [
                     dbc.Tab(tab1_content, label="Cost"),
                     dbc.Tab(tab2_content, label="Revenue"),
-                ]
-            )
+                ],
+            ),
         ),
     ],
     className="pad-row",
