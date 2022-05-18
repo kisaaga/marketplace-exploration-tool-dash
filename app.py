@@ -2,7 +2,7 @@ from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
 from pages import dashboard, sales, inventory, stats, finances, shipping, messages, reviews, settings
 
-app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+app = Dash(external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -53,7 +53,9 @@ app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 @callback(Output('page-content', 'children'),
           Input('url', 'pathname'))
 def display_page(pathname):
-    if pathname == '/dashboard':
+    if pathname == '/':
+        return dashboard.layout
+    elif pathname == '/dashboard':
         return dashboard.layout
     elif pathname == '/sales':
         return sales.layout
