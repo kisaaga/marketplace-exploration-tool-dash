@@ -89,7 +89,8 @@ layout = html.Div([
     [
         State("reprice_modal", "is_open"),
         State("datatable", "selected_rows"),
-    ]
+    ],
+    prevent_initial_call=True
 )
 def toggle_reprice_modal(n0, n1, is_open_modal, selected_rows):
     if len(selected_rows) > 0:
@@ -102,16 +103,32 @@ def toggle_reprice_modal(n0, n1, is_open_modal, selected_rows):
 
 
 @callback(
-    Output("reprice_body", "children"),
+    Output("reprice_modal", "children"),
     Input("reprice-button", "n_clicks"),
-    State("datatable", "selected_rows")
+    State("datatable", "selected_rows"),
+    prevent_initial_call=True
 )
 def reprice(n_click, selected_rows):
     if len(selected_rows) > 0:
         row_index = selected_rows[0]
         print(df.loc[row_index]['Price'])
+        parse_price = df.loc[row_index]['Price'].split('$')
+        print(parse_price)
+
         if n_click:
-            return df.loc[row_index]['Price']
+            reprice_layout = dbc.Card(
+                dcc.Graph(
+                    figure={
+                        'data': [
+                            {'x': [1, 2], 'y': [float(parse_price[1]), 35], 'type': 'bar', 'name': 'SF'},
+                        ],
+                        'layout': {
+                            'title': 'Repriceee'
+                        }
+                    }
+                ),
+            )
+            return reprice_layout
     else:
         print("No rows selected.")
 
@@ -120,6 +137,7 @@ def reprice(n_click, selected_rows):
     Output("demo_modal", "is_open"),
     Input("open_demo_button", "n_clicks"),
     [State("demo_modal", "is_open")],
+    prevent_initial_call=True
 )
 def toggle_demo_modal(n1, is_open):
     if n1:
