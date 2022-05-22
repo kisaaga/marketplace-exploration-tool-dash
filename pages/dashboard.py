@@ -1,5 +1,6 @@
 from dash import dcc, html, dash_table, Input, Output, callback, State
 import plotly.express as px
+import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
 import pandas as pd
 
@@ -342,32 +343,22 @@ tab2_content = dbc.Card(
         [
             dbc.Row(
                 [
-                    dbc.Col(
-                        dbc.Container(
-                            [
-                                dbc.Row(
-                                    html.H4("Summary"),
-                                ),
-                                dbc.Row(
-                                ),
-                            ]
-                        ),
+                    html.Div(
+                        id="revenue_Summary",
+                        children=[],
+                        style={
+                            "width": 600
+                        }
                     ),
-
-                    dbc.Col(
-                        dbc.Container(
-                            [
-                                dbc.Row(
-                                    html.H4("Revenue Over Time"),
-                                ),
-                                dbc.Row(
-                                ),
-                            ]
-                        ),
+                    html.Div(
+                        id="revenue_Time", children=[],
+                        style={
+                            "width": 600
+                        }
                     ),
-                ],
-                justify="between",
+                ]
             ),
+            # justify="between",
         ]
     ),
     className="mt-3",
@@ -400,9 +391,10 @@ layout = html.Div(
         dbc.Row(
             dbc.Tabs(
                 [
-                    dbc.Tab(tab1_content, label="Cost"),
-                    dbc.Tab(tab2_content, label="Revenue"),
+                    dbc.Tab(tab1_content, label="Cost", tab_id="1"),
+                    dbc.Tab(tab2_content, label="Revenue", tab_id="2"),
                 ],
+                id="general_tab"
             ),
         ),
     ],
@@ -457,3 +449,69 @@ def profit_radio(n1):
         return str(int(calc_roi * 100)) + "%"
     else:
         return PastRoi
+
+
+@callback(
+    [Output("revenue_Summary", "children"),
+     Output("revenue_Time", "children"),
+     ],
+    Input("general_tab", "tab_id"),
+    prevent_initial_call=False
+)
+def revenue(tab_id):
+    total = 0
+    total_cummilative = 0
+    average_revenue = 0
+    struct = df.shape
+    row_num = struct[0]
+    revenue_cummilative = []
+    date_array = df['Date ']
+    revenue_array = df['Price($)']
+
+    for i in range(row_num):
+        total_cummilative = total_cummilative + revenue_array[i]
+        revenue_cummilative.append(total_cummilative)
+
+    for x in range(row_num):
+        price_str = df.loc[x]['Price($)']
+        price_float = float(price_str)
+        total = total + price_float
+    average_revenue = total / row_num
+    revenue_layout_1 = dbc.Card(
+        [
+            dbc.Row(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Summary"),
+                        dbc.CardBody(
+                            dbc.ListGroup(
+                                [
+                                    dbc.ListGroupItem("Total Revenue " + str(round(total, ndigits=2))),
+                                    dbc.ListGroupItem("Average Revenue " + str(round(average_revenue, ndigits=2))),
+                                ]
+                            ),
+                        ),
+                    ]
+                ),
+            ),
+            dbc.Row(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Revenue For Each Date"),
+                        dbc.CardBody(
+                            dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=revenue_array)])),
+                        ),
+                    ]
+                ),
+            ),
+        ]
+    ),
+    revenue_layout_2 = dbc.Card(
+        [
+            dbc.CardHeader("Revenue Over Time"),
+            dbc.CardBody(
+                dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=revenue_cummilative)])),
+            ),
+        ]
+    ),
+    return revenue_layout_1, revenue_layout_2
