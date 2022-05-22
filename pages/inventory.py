@@ -2,6 +2,8 @@ from dash import dash, dash_table, dcc, html, Input, Output, callback, State, ct
 import pandas as pd
 import dash_bootstrap_components as dbc
 
+from pages.utils import get_price_from_model
+
 df = pd.read_csv('data/inventory_data.csv')
 
 reprice = 0
@@ -184,18 +186,51 @@ def toggle_reprice_modal(n0, n1, is_open_modal, selected_rows):
     State("datatable", "selected_rows"),
     prevent_initial_call=True
 )
-def reprice(n_click, selected_rows):
+def reprice_func(n_click, selected_rows):
     global reprice
     if len(selected_rows) > 0:
         row_index = selected_rows[0]
-        print(df.loc[row_index]['Price'])
         parse_price = df.loc[row_index]['Price'].split('$')
         parse_price_int = parse_price[1].split('.')
-        reprice = 35
-        print(parse_price)
-        print(parse_price_int[0])
+        cols = ['Overall_Rating', 'Total-Reviews', 'Availability', 'Color', 'Brand',
+                'Total-Sellers', 'Wireless Charging Compatible', 'Magnetic',
+                'Faux Leather']
+
+        df_temp = df.drop('Price', axis=1).loc[row_index:row_index + 1]
+        df_temp['Total-Sellers'] = 3
+
+        if 'Wireless Charging Compatible' in df_temp['Special-Feature']:
+            df_temp['Wireless Charging Compatible'] = 1
+        else:
+            df_temp['Wireless Charging Compatible'] = 0
+
+        if 'Wireless Charging Compatible' in df_temp['Special-Feature']:
+            df_temp['Magnetic'] = 1
+        else:
+            df_temp['Magnetic'] = 1
+
+        if 'Faux Letter' in df_temp['Material']:
+            df_temp['Faux Leather'] = 1
+        else:
+            df_temp['Faux Leather'] = 0
+
+        df_temp['Overall_Rating'] = df_temp['Overall-Rating']
+
+        parse_rating = df.loc[row_index]['Overall-Rating'].split(' ')
+        parse_rating_int = parse_rating[0]
+        df_temp['Overall_Rating'] = parse_rating_int
+
+        parse_reviews = df.loc[row_index]['Total-Reviews'].split(' ')
+        parse_reviews_int = parse_reviews[0]
+        df_temp['Total-Reviews'] = parse_reviews_int
+
+        for col in df_temp.columns:
+            if col not in cols:
+                df_temp = df_temp.drop(col, axis=1)
+        reprice = get_price_from_model(df_temp)
+        reprice = reprice[0]
+        print("reprice " + str(reprice))
         percentage_change = ((reprice - int(parse_price_int[0])) / int(parse_price_int[0])) * 100
-        print(percentage_change)
 
         if n_click:
             reprice_layout = dbc.Card(
@@ -207,7 +242,8 @@ def reprice(n_click, selected_rows):
                                 dcc.Graph(
                                     figure={
                                         'data': [
-                                            {'x': ['Reprice', 'Current Price'], 'y': [float(parse_price[1]), reprice],
+                                            {'x': ['Current Price', 'Optimized Price'],
+                                             'y': [float(parse_price[1]), round(reprice, ndigits=2)],
                                              'type': 'bar',
                                              'name': 'SF'},
                                         ],
@@ -224,7 +260,7 @@ def reprice(n_click, selected_rows):
                                             [
                                                 dbc.CardHeader("Old Price"),
                                                 dbc.CardBody(
-                                                    html.H5(parse_price[1]),
+                                                    html.H5(round(float(parse_price[1]), ndigits=2)),
                                                 ),
                                             ]
                                         ),
@@ -235,7 +271,7 @@ def reprice(n_click, selected_rows):
                                             [
                                                 dbc.CardHeader("New Price"),
                                                 dbc.CardBody(
-                                                    html.H5("35.0"),
+                                                    html.H5(round(reprice, ndigits=2)),
                                                 ),
                                             ]
                                         ),
@@ -246,7 +282,7 @@ def reprice(n_click, selected_rows):
                                             [
                                                 dbc.CardHeader("Percentage Change Between Current and New Price"),
                                                 dbc.CardBody(
-                                                    html.H5("%" + str(percentage_change)),
+                                                    html.H5("%" + str(round(percentage_change, ndigits=2))),
                                                 ),
                                             ]
                                         ),
@@ -315,7 +351,8 @@ def demo_project(n1, n2, month):
 
 
 @callback(
-    Output("Success_modal", "is_open"),
+    [Output("Success_modal", "is_open"),
+     Output("datatable", "data"), ],
     Input("accept_button", "n_clicks"),
     [
         State("datatable", "selected_rows"),
@@ -329,8 +366,8 @@ def update_table(n_click, selected_rows, is_open):
     if n_click:
         print("aaaaaa")
         row_index = selected_rows[0]
-        df.loc[row_index, 'Price'] = str(reprice)
+        df.loc[row_index, 'Price'] = "$" + str(reprice)
         df.to_csv("data/inventory_data.csv", index=False)
         df = pd.read_csv('data/inventory_data.csv')
-        return not is_open
-    return is_open
+        return not is_open, df.to_dict('records')
+    return is_open, df.to_dict('records')
