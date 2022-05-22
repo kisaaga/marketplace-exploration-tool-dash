@@ -24,6 +24,7 @@ modal_1 = dbc.Modal(
                         "Accept New Price",
                         id="accept_button",
                         className="ms-auto",
+                        color="danger",
                         n_clicks=0,
                     ),
                 ],
@@ -137,6 +138,7 @@ layout = html.Div([
                     dbc.Button('Reprice', id='reprice-button', n_clicks=0),
                     modal_1,
                     modal_2,
+                    modal_3,
                     dbc.Alert(
                         "Please select a product!",
                         id="reprice_alert",
@@ -183,6 +185,7 @@ def toggle_reprice_modal(n0, n1, is_open_modal, selected_rows):
     prevent_initial_call=True
 )
 def reprice(n_click, selected_rows):
+    global reprice
     if len(selected_rows) > 0:
         row_index = selected_rows[0]
         print(df.loc[row_index]['Price'])
@@ -281,6 +284,7 @@ def toggle_demo_modal(n1, is_open):
 )
 def demo_project(n1, n2, month):
     button_clicked = ctx.triggered_id
+    demo_graph_layout = dbc.Card()
     if button_clicked == "profit_project_button":
         demo_graph_layout = dbc.Card(
             dcc.Graph(
@@ -309,20 +313,24 @@ def demo_project(n1, n2, month):
         )
     return demo_graph_layout
 
+
 @callback(
     Output("Success_modal", "is_open"),
     Input("accept_button", "n_clicks"),
     [
         State("datatable", "selected_rows"),
-        State("Success_modal", "is_open"),
+        State("Success_modal", "is_open")
     ],
+    prevent_initial_call=True
 )
 def update_table(n_click, selected_rows, is_open):
+    global df
     print("aaaaaa")
     if n_click:
         print("aaaaaa")
         row_index = selected_rows[0]
         df.loc[row_index, 'Price'] = str(reprice)
         df.to_csv("data/inventory_data.csv", index=False)
+        df = pd.read_csv('data/inventory_data.csv')
         return not is_open
     return is_open
