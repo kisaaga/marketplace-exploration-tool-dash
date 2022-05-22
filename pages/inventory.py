@@ -33,6 +33,13 @@ modal_1 = dbc.Modal(
                 className="d-grid gap-2 d-md-flex justify-content-md-end",
             ),
         ),
+        dbc.Alert(
+            "New price successfully saved",
+            id="success",
+            dismissable=True,
+            is_open=False,
+            color="success"
+        ),
     ],
     id="reprice_modal",
     size="xl",
@@ -100,16 +107,6 @@ modal_2 = dbc.Modal(
     is_open=False,
 )
 
-modal_3 = dbc.Modal(
-    [
-        dbc.ModalHeader(dbc.ModalTitle("Success")),
-        dbc.ModalBody("New price successfully saved"),
-    ],
-    id="Success_modal",
-    size="lg",
-    is_open=False,
-)
-
 layout = html.Div([
     html.H1('Inventory'),
     dbc.Card(
@@ -140,7 +137,6 @@ layout = html.Div([
                     dbc.Button('Reprice', id='reprice-button', n_clicks=0),
                     modal_1,
                     modal_2,
-                    modal_3,
                     dbc.Alert(
                         "Please select a product!",
                         id="reprice_alert",
@@ -351,22 +347,21 @@ def demo_project(n1, n2, month):
 
 
 @callback(
-    [Output("Success_modal", "is_open"),
-     Output("datatable", "data"), ],
+    [Output("success", "is_open"),
+     Output("datatable", "data"),
+     ],
     Input("accept_button", "n_clicks"),
     [
         State("datatable", "selected_rows"),
-        State("Success_modal", "is_open")
+        State("success", "is_open"),
     ],
     prevent_initial_call=True
 )
 def update_table(n_click, selected_rows, is_open):
     global df
-    print("aaaaaa")
     if n_click:
-        print("aaaaaa")
         row_index = selected_rows[0]
-        df.loc[row_index, 'Price'] = "$" + str(reprice)
+        df.loc[row_index, 'Price'] = "$" + str(round(reprice, ndigits=2))
         df.to_csv("data/inventory_data.csv", index=False)
         df = pd.read_csv('data/inventory_data.csv')
         return not is_open, df.to_dict('records')

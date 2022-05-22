@@ -306,32 +306,20 @@ tab1_content = dbc.Card(
         [
             dbc.Row(
                 [
-                    dbc.Col(
-                        dbc.Container(
-                            [
-                                dbc.Row(
-                                    html.H4("Summary"),
-                                ),
-                                dbc.Row(
-                                ),
-                            ]
-                        ),
+                    html.Div(
+                        id="cost_Summary",
+                        children=[],
+                        style={
+                            "width": 600
+                        }
                     ),
-
-                    dbc.Col(
-                        dbc.Container(
-                            [
-                                dbc.Row(
-                                    html.H4("Cost Over Time"),
-                                ),
-                                dbc.Row(
-                                ),
-                            ]
-                        ),
+                    html.Div(
+                        id="cost_Time", children=[],
+                        style={
+                            "width": 600
+                        }
                     ),
-                ],
-                justify="between",
-                align="start",
+                ]
             ),
         ]
     ),
@@ -352,6 +340,32 @@ tab2_content = dbc.Card(
                     ),
                     html.Div(
                         id="revenue_Time", children=[],
+                        style={
+                            "width": 600
+                        }
+                    ),
+                ]
+            ),
+            # justify="between",
+        ]
+    ),
+    className="mt-3",
+)
+
+tab3_content = dbc.Card(
+    dbc.CardBody(
+        [
+            dbc.Row(
+                [
+                    html.Div(
+                        id="profit_Summary",
+                        children=[],
+                        style={
+                            "width": 600
+                        }
+                    ),
+                    html.Div(
+                        id="profit_Time", children=[],
                         style={
                             "width": 600
                         }
@@ -393,6 +407,7 @@ layout = html.Div(
                 [
                     dbc.Tab(tab1_content, label="Cost", tab_id="1"),
                     dbc.Tab(tab2_content, label="Revenue", tab_id="2"),
+                    dbc.Tab(tab3_content, label="Profit", tab_id="3"),
                 ],
                 id="general_tab"
             ),
@@ -486,8 +501,8 @@ def revenue(tab_id):
                         dbc.CardBody(
                             dbc.ListGroup(
                                 [
-                                    dbc.ListGroupItem("Total Revenue " + str(round(total, ndigits=2))),
-                                    dbc.ListGroupItem("Average Revenue " + str(round(average_revenue, ndigits=2))),
+                                    dbc.ListGroupItem("Total Revenue: " + str(round(total, ndigits=2))+"$"),
+                                    dbc.ListGroupItem("Average Revenue: " + str(round(average_revenue, ndigits=2))+"$"),
                                 ]
                             ),
                         ),
@@ -511,6 +526,142 @@ def revenue(tab_id):
             dbc.CardHeader("Revenue Over Time"),
             dbc.CardBody(
                 dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=revenue_cummilative)])),
+            ),
+        ]
+    ),
+    return revenue_layout_1, revenue_layout_2
+
+
+@callback(
+    [Output("cost_Summary", "children"),
+     Output("cost_Time", "children"),
+     ],
+    Input("general_tab", "tab_id"),
+    prevent_initial_call=False
+)
+def cost(tab_id):
+    total = 0
+    total_cummilative = 0
+    average_revenue = 0
+    struct = df.shape
+    row_num = struct[0]
+    cost_cummilative = []
+    date_array = df['Date ']
+    cost_array = df['Cost']
+
+    for i in range(row_num):
+        total_cummilative = total_cummilative + cost_array[i]
+        cost_cummilative.append(total_cummilative)
+
+    for x in range(row_num):
+        price_str = df.loc[x]['Cost']
+        price_float = float(price_str)
+        total = total + price_float
+    average_revenue = total / row_num
+    revenue_layout_1 = dbc.Card(
+        [
+            dbc.Row(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Summary"),
+                        dbc.CardBody(
+                            dbc.ListGroup(
+                                [
+                                    dbc.ListGroupItem("Total Cost: " + str(round(total, ndigits=2))+"$"),
+                                    dbc.ListGroupItem("Average Cost: " + str(round(average_revenue, ndigits=2))+"$"),
+                                ]
+                            ),
+                        ),
+                    ]
+                ),
+            ),
+            dbc.Row(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Cost For Each Date"),
+                        dbc.CardBody(
+                            dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=cost_array)])),
+                        ),
+                    ]
+                ),
+            ),
+        ]
+    ),
+    revenue_layout_2 = dbc.Card(
+        [
+            dbc.CardHeader("Cost Over Time"),
+            dbc.CardBody(
+                dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=cost_cummilative)])),
+            ),
+        ]
+    ),
+    return revenue_layout_1, revenue_layout_2
+
+
+@callback(
+    [Output("profit_Summary", "children"),
+     Output("profit_Time", "children"),
+     ],
+    Input("general_tab", "tab_id"),
+    prevent_initial_call=False
+)
+def revenue(tab_id):
+    total_profit = 0
+    total_cummilative = 0
+    Profit_day = []
+    struct = df.shape
+    row_num = struct[0]
+    profit_cummilative = []
+    date_array = df['Date ']
+    cost_array = df['Cost']
+    revenue_array = df['Price($)']
+
+    for i in range(row_num):
+        Profit_day.append(revenue_array[i] - cost_array[i])
+        total_cummilative = total_cummilative + (revenue_array[i] - cost_array[i])
+        profit_cummilative.append(total_cummilative)
+
+    for x in range(row_num):
+        cost_str = df.loc[x]['Cost']
+        revenue_str = df.loc[x]['Price($)']
+        cost = float(cost_str)
+        revenue = float(revenue_str)
+        total_profit = total_profit + (revenue - cost)
+    average_profit = total_profit / row_num
+    revenue_layout_1 = dbc.Card(
+        [
+            dbc.Row(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Summary"),
+                        dbc.CardBody(
+                            dbc.ListGroup(
+                                [
+                                    dbc.ListGroupItem("Total Profit: " + str(round(total_profit, ndigits=2))+"$"),
+                                    dbc.ListGroupItem("Average Profit: " + str(round(average_profit, ndigits=2))+"$"),
+                                ]
+                            ),
+                        ),
+                    ]
+                ),
+            ),
+            dbc.Row(
+                dbc.Card(
+                    [
+                        dbc.CardHeader("Profit For Each Date"),
+                        dbc.CardBody(
+                            dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=Profit_day)])),
+                        ),
+                    ]
+                ),
+            ),
+        ]
+    ),
+    revenue_layout_2 = dbc.Card(
+        [
+            dbc.CardHeader("Profit Over Time"),
+            dbc.CardBody(
+                dcc.Graph(figure=go.Figure(data=[go.Scatter(x=date_array, y=profit_cummilative)])),
             ),
         ]
     ),
