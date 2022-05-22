@@ -1,5 +1,4 @@
-import dash
-from dash import Dash, dash_table, dcc, html, Input, Output, callback, State
+from dash import dash_table, dcc, html, Input, Output, callback, State
 import pandas as pd
 import dash_bootstrap_components as dbc
 
@@ -19,7 +18,7 @@ modal_1 = dbc.Modal(
         ),
     ],
     id="reprice_modal",
-    size="lg",
+    size="xl",
     is_open=False,
 )
 
@@ -103,7 +102,7 @@ def toggle_reprice_modal(n0, n1, is_open_modal, selected_rows):
 
 
 @callback(
-    Output("reprice_modal", "children"),
+    Output("reprice_body", "children"),
     Input("reprice-button", "n_clicks"),
     State("datatable", "selected_rows"),
     prevent_initial_call=True
@@ -136,7 +135,7 @@ def reprice(n_click, selected_rows):
 @callback(
     Output("demo_modal", "is_open"),
     Input("open_demo_button", "n_clicks"),
-    [State("demo_modal", "is_open")],
+    State("demo_modal", "is_open"),
     prevent_initial_call=True
 )
 def toggle_demo_modal(n1, is_open):
