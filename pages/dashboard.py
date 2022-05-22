@@ -1,26 +1,43 @@
-from dash import dcc, html, dash_table, Input, Output, callback
+from dash import dcc, html, dash_table, Input, Output, callback, State
 import plotly.express as px
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-df = px.data.iris()
+df = pd.read_csv('data/sales_data.csv')
+df.dropna(how='all', inplace=True)
 
-fig = px.scatter(df, x="sepal_width", y="sepal_length")
+tot_profit = 0
 
-df = pd.DataFrame(
-    {
-        "Revenue": ["Amazon Sales", "Refund", "Reimbursements", "Promo Rebates"],
-        "$236,500.200": ["$180,250.100", "$30,357.250", "$20,500.50", "$10,300.47"],
-    }
-)
+for i in df['Profit']:
+    tot_profit = tot_profit + i
+
+units_sold = 0
+
+for m in df['Amount']:
+    units_sold = units_sold + m
+
+tot_cost = 0
+
+for j in df['Cost']:
+    tot_cost = tot_cost + j
+
+tot_revenue = 0
+
+for i in range(len(df['Price($)'])):
+    if df['State'][i] == 'Sold-out':
+        tot_revenue = tot_revenue + df['Price($)'][i]
+
+tot_revenue = int(tot_revenue)
+
+current_roi = tot_profit / tot_cost
 
 FutureUnit = 2457
-FutureMargin = "-13%"
+FutureProfit = "-13%"
 FutureRoi = "-10%"
 
-PastUnit = 1967
-PastMargin = "-16%"
-PastRoi = "-13%"
+PastUnit = str(int(units_sold)) + " Units"
+PastProfit = str(int(tot_profit)) + "$"
+PastRoi = str(int(current_roi * 100)) + "%"
 
 SearchBar = html.Div(
     [
@@ -29,15 +46,6 @@ SearchBar = html.Div(
         html.P(id="output"),
     ]
 )
-
-ListGroup = dbc.ListGroup(
-    [
-        dbc.ListGroupItem("Item 1", color="secondary"),
-        dbc.ListGroupItem("Item 2"),
-        dbc.ListGroupItem("Item 3", color="secondary"),
-    ],
-    flush=True,
-),
 
 VerticalNav = dbc.Nav(
     [
@@ -56,7 +64,7 @@ CurrentContent = dbc.Row(
         dbc.Col(
             dbc.Card(
                 [
-                    dbc.CardHeader(html.H5("Units Sold"), ),
+                    dbc.CardHeader(html.H5("Units Sold")),
                     dbc.CardBody(
                         [
                             dbc.Row(
@@ -66,7 +74,7 @@ CurrentContent = dbc.Row(
                                         {"label": "This Month", "value": 2},
                                     ],
                                     value=1,
-                                    id="radioitems-inline-input",
+                                    id="radioitems-units-input",
                                     inline=True,
                                 ),
                             ),
@@ -74,16 +82,13 @@ CurrentContent = dbc.Row(
                             dbc.Row(
                                 dbc.Col(
                                     html.H3(
-                                        [
+                                        children=[
                                             PastUnit,
                                         ],
                                         className="card-text",
+                                        id="unit_sold_text"
                                     ),
                                 ),
-                            ),
-                            html.Br(),
-                            dbc.Row(
-                                ListGroup,
                             ),
                         ],
                     ),
@@ -93,7 +98,7 @@ CurrentContent = dbc.Row(
         dbc.Col(
             dbc.Card(
                 [
-                    dbc.CardHeader(html.H5("Net Margin"), ),
+                    dbc.CardHeader(html.H5("Net Profit"), ),
                     dbc.CardBody(
                         [
                             dbc.Row(
@@ -103,7 +108,7 @@ CurrentContent = dbc.Row(
                                         {"label": "This Month", "value": 2},
                                     ],
                                     value=1,
-                                    id="radioitems-inline-input",
+                                    id="radioitems-profit-input",
                                     inline=True,
                                 ),
                             ),
@@ -111,16 +116,13 @@ CurrentContent = dbc.Row(
                             dbc.Row(
                                 dbc.Col(
                                     html.H3(
-                                        [
-                                            PastMargin,
+                                        children=[
+                                            PastProfit,
                                         ],
                                         className="card-text",
+                                        id="profit-text"
                                     ),
                                 ),
-                            ),
-                            html.Br(),
-                            dbc.Row(
-                                ListGroup,
                             ),
                         ],
                     ),
@@ -140,7 +142,7 @@ CurrentContent = dbc.Row(
                                         {"label": "This Month", "value": 2},
                                     ],
                                     value=1,
-                                    id="radioitems-inline-input",
+                                    id="radioitems-roi-input",
                                     inline=True,
                                 ),
                             ),
@@ -148,16 +150,13 @@ CurrentContent = dbc.Row(
                             dbc.Row(
                                 dbc.Col(
                                     html.H3(
-                                        [
+                                        children=[
                                             PastRoi,
                                         ],
                                         className="card-text",
+                                        id="roi-text"
                                     ),
                                 ),
-                            ),
-                            html.Br(),
-                            dbc.Row(
-                                ListGroup,
                             ),
                         ],
                     ),
@@ -197,7 +196,15 @@ FutureContent = dbc.Row(
                             ),
                             html.Br(),
                             dbc.Row(
-                                ListGroup,
+                                dbc.ListGroup(
+                                    [
+                                        dbc.ListGroupItem(
+                                            "Item 1",
+                                            color="secondary",
+                                        ),
+                                    ],
+                                    flush=True,
+                                ),
                             ),
                         ],
                     ),
@@ -207,7 +214,7 @@ FutureContent = dbc.Row(
         dbc.Col(
             dbc.Card(
                 [
-                    dbc.CardHeader(html.H5("Net Margin"), ),
+                    dbc.CardHeader(html.H5("Net Profit"), ),
                     dbc.CardBody(
                         [
                             dbc.Row(
@@ -224,7 +231,7 @@ FutureContent = dbc.Row(
                                 dbc.Col(
                                     html.H3(
                                         [
-                                            FutureMargin,
+                                            FutureProfit,
                                         ],
                                         className="card-text",
                                     ),
@@ -232,7 +239,15 @@ FutureContent = dbc.Row(
                             ),
                             html.Br(),
                             dbc.Row(
-                                ListGroup,
+                                dbc.ListGroup(
+                                    [
+                                        dbc.ListGroupItem(
+                                            "Item 1",
+                                            color="secondary",
+                                        ),
+                                    ],
+                                    flush=True,
+                                ),
                             ),
                         ],
                     ),
@@ -267,7 +282,15 @@ FutureContent = dbc.Row(
                             ),
                             html.Br(),
                             dbc.Row(
-                                ListGroup,
+                                dbc.ListGroup(
+                                    [
+                                        dbc.ListGroupItem(
+                                            "Item 1",
+                                            color="secondary",
+                                        ),
+                                    ],
+                                    flush=True,
+                                ),
                             ),
                         ],
                     ),
@@ -289,17 +312,6 @@ tab1_content = dbc.Card(
                                     html.H4("Summary"),
                                 ),
                                 dbc.Row(
-                                    dcc.Graph(
-                                        figure={
-                                            'data': [
-                                                {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
-                                                {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
-                                            ],
-                                            'layout': {
-                                                'title': 'Dash Data Visualization'
-                                            }
-                                        }
-                                    )
                                 ),
                             ]
                         ),
@@ -312,40 +324,6 @@ tab1_content = dbc.Card(
                                     html.H4("Cost Over Time"),
                                 ),
                                 dbc.Row(
-                                    dcc.Graph(
-                                        figure=dict(
-                                            data=[
-                                                dict(
-                                                    x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                                                       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-                                                    y=[219, 146, 112, 127, 124, 180, 236, 207, 236, 263,
-                                                       350, 430, 474, 526, 488, 537, 500, 439],
-                                                    name='Rest of world',
-                                                    marker=dict(
-                                                        color='rgb(55, 83, 109)'
-                                                    )
-                                                ),
-                                                dict(
-                                                    x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                                                       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-                                                    y=[16, 13, 10, 11, 28, 37, 43, 55, 56, 88, 105, 156, 270,
-                                                       299, 340, 403, 549, 499],
-                                                    name='China',
-                                                    marker=dict(
-                                                        color='rgb(26, 118, 255)'
-                                                    )
-                                                )
-                                            ],
-                                            layout=dict(
-                                                title='US Export of Plastic Scrap',
-                                                showlegend=True,
-                                                legend=dict(
-                                                    x=0,
-                                                    y=1.0
-                                                ),
-                                            )
-                                        ),
-                                    )
                                 ),
                             ]
                         ),
@@ -371,7 +349,6 @@ tab2_content = dbc.Card(
                                     html.H4("Summary"),
                                 ),
                                 dbc.Row(
-                                    dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
                                 ),
                             ]
                         ),
@@ -384,40 +361,6 @@ tab2_content = dbc.Card(
                                     html.H4("Revenue Over Time"),
                                 ),
                                 dbc.Row(
-                                    dcc.Graph(
-                                        figure=dict(
-                                            data=[
-                                                dict(
-                                                    x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                                                       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-                                                    y=[219, 146, 112, 127, 124, 180, 236, 207, 236, 263,
-                                                       350, 430, 474, 526, 488, 537, 500, 439],
-                                                    name='Rest of world',
-                                                    marker=dict(
-                                                        color='rgb(55, 83, 109)'
-                                                    )
-                                                ),
-                                                dict(
-                                                    x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                                                       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-                                                    y=[16, 13, 10, 11, 28, 37, 43, 55, 56, 88, 105, 156, 270,
-                                                       299, 340, 403, 549, 499],
-                                                    name='China',
-                                                    marker=dict(
-                                                        color='rgb(26, 118, 255)'
-                                                    )
-                                                )
-                                            ],
-                                            layout=dict(
-                                                title='US Export of Plastic Scrap',
-                                                showlegend=True,
-                                                legend=dict(
-                                                    x=0,
-                                                    y=1.0
-                                                ),
-                                            )
-                                        ),
-                                    )
                                 ),
                             ]
                         ),
@@ -465,3 +408,52 @@ layout = html.Div(
     ],
     className="pad-row",
 )
+
+
+@callback(
+    Output("unit_sold_text", "children"),
+    Input("radioitems-units-input", "value"),
+    prevent_initial_call=True
+)
+def units_sold_radio(n1):
+    if n1 == 2:
+        df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
+        dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
+        amount = dfm2.iloc[-1]["Amount"]
+        print(amount)
+        return str(int(amount)) + " Units"
+    else:
+        print(PastUnit)
+        return PastUnit
+
+
+@callback(
+    Output("profit-text", "children"),
+    Input("radioitems-profit-input", "value"),
+    prevent_initial_call=True
+)
+def profit_radio(n1):
+    if n1 == 2:
+        df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
+        dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
+        profit = dfm2.iloc[-1]["Profit"]
+        return str(profit) + " $"
+    else:
+        return PastProfit
+
+
+@callback(
+    Output("roi-text", "children"),
+    Input("radioitems-roi-input", "value"),
+    prevent_initial_call=True
+)
+def profit_radio(n1):
+    if n1 == 2:
+        df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
+        dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
+        profit = dfm2.iloc[-1]["Profit"]
+        cost = dfm2.iloc[-1]["Cost"]
+        calc_roi = profit / cost
+        return str(int(calc_roi * 100)) + "%"
+    else:
+        return PastRoi
