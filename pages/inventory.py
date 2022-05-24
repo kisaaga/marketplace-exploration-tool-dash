@@ -8,13 +8,20 @@ df = pd.read_csv('data/inventory_data.csv')
 
 reprice = 0
 
-modal_1 = dbc.Modal(
+reprice_modal = dbc.Modal(
     [
         dbc.ModalHeader(dbc.ModalTitle("Reprice")),
         dbc.ModalBody(children=[], id="reprice_body"),
         dbc.ModalFooter(
             html.Div(
                 [
+                    dbc.Button(
+                        "How is this calculated?",
+                        id="explain_button",
+                        className="ms-auto",
+                        color="info",
+                        n_clicks=0,
+                    ),
                     dbc.Button(
                         "Conduct a demo",
                         id="open_demo_button",
@@ -46,7 +53,7 @@ modal_1 = dbc.Modal(
     is_open=False,
 )
 
-modal_2 = dbc.Modal(
+demo_modal = dbc.Modal(
     [
         dbc.ModalHeader(dbc.ModalTitle("Reprice Demo")),
         dbc.ModalBody(
@@ -107,6 +114,30 @@ modal_2 = dbc.Modal(
     is_open=False,
 )
 
+explain_modal = dbc.Modal(
+    [
+        dbc.ModalHeader(dbc.ModalTitle("How is the suggested price calculated?")),
+        dbc.ModalBody(children=[], id="explain_body"),
+        dbc.ModalFooter(
+            html.Div(
+                [
+                    dbc.Button(
+                        "Go Back",
+                        id="explain_back_button",
+                        className="ms-auto",
+                        color="primary",
+                        n_clicks=0,
+                    ),
+                ],
+                className="d-grid gap-2 d-md-flex justify-content-md-end",
+            ),
+        ),
+    ],
+    id="explain_modal",
+    size="xl",
+    is_open=False,
+)
+
 layout = html.Div([
     html.H1('Inventory'),
     dbc.Card(
@@ -135,8 +166,9 @@ layout = html.Div([
                         page_size=10,
                     ),
                     dbc.Button('Reprice', id='reprice-button', n_clicks=0),
-                    modal_1,
-                    modal_2,
+                    reprice_modal,
+                    demo_modal,
+                    explain_modal,
                     dbc.Alert(
                         "Please select a product!",
                         id="reprice_alert",
@@ -155,34 +187,50 @@ layout = html.Div([
     [
         Output("reprice_modal", "is_open"),
         Output("reprice_alert", "is_open"),
+        Output("explain_modal", "is_open"),
     ],
     [
         Input("reprice-button", "n_clicks"),
         Input("open_demo_button", "n_clicks"),
+        Input("explain_button", "n_clicks"),
+        Input("explain_back_button", "n_clicks"),
     ],
     [
         State("reprice_modal", "is_open"),
         State("datatable", "selected_rows"),
+        State("explain_modal", "is_open"),
     ],
     prevent_initial_call=True
 )
-def toggle_reprice_modal(n0, n1, is_open_modal, selected_rows):
+def toggle_reprice_modal(n0, n1, n2, n3, is_open_modal, selected_rows, explain_is_open):
+    button_clicked = ctx.triggered_id
     if len(selected_rows) > 0:
-        if n0 or n1:
-            return (not is_open_modal), False
+        if button_clicked == "reprice-button" or button_clicked == "open_demo_button":
+            return (not is_open_modal), False, False
+        elif button_clicked == "explain_button":
+            return (not is_open_modal), False, (not explain_is_open)
+        else:
+            return (not is_open_modal), False, (not explain_is_open)
     elif n0 != 0:
-        return dash.no_update, True
+        return dash.no_update, True, False
     else:
-        return False, False
+        return False, False, False
 
 
 @callback(
-    Output("reprice_body", "children"),
-    Input("reprice-button", "n_clicks"),
+    [
+        Output("reprice_body", "children"),
+        Output("explain_body", "children"),
+    ],
+    [
+        Input("reprice-button", "n_clicks"),
+        Input("explain_button", "n_clicks"),
+    ],
     State("datatable", "selected_rows"),
     prevent_initial_call=True
 )
-def reprice_func(n_click, selected_rows):
+def reprice_func(n_click1, n2, selected_rows):
+    button_clicked = ctx.triggered_id
     global reprice
     if len(selected_rows) > 0:
         row_index = selected_rows[0]
@@ -193,7 +241,7 @@ def reprice_func(n_click, selected_rows):
                 'Faux Leather']
 
         df_temp = df.drop('Price', axis=1).loc[row_index:row_index + 1]
-        df_temp['Total-Sellers'] = 3
+        df_temp['Total-Sellers'] = df.loc[row_index]['Total-Sellers']
 
         if 'Wireless Charging Compatible' in df_temp['Special-Feature']:
             df_temp['Wireless Charging Compatible'] = 1
@@ -225,10 +273,9 @@ def reprice_func(n_click, selected_rows):
                 df_temp = df_temp.drop(col, axis=1)
         reprice = get_price_from_model(df_temp)
         reprice = reprice[0]
-        print("reprice " + str(reprice))
         percentage_change = ((reprice - int(parse_price_int[0])) / int(parse_price_int[0])) * 100
 
-        if n_click:
+        if button_clicked == "reprice-button":
             reprice_layout = dbc.Card(
                 dbc.CardBody(
                     dbc.Row(
@@ -290,9 +337,70 @@ def reprice_func(n_click, selected_rows):
                     ),
                 ),
             ),
-            return reprice_layout
-    else:
-        print("No rows selected.")
+            return reprice_layout, dash.no_update
+        else:
+            explain_layout = dbc.Card(
+                dbc.CardBody(
+                    dbc.Row(
+                        [
+                            dbc.Col(
+
+                                dcc.Graph(
+                                    figure={
+                                        'data': [
+                                            {'x': ['Current Price', 'Optimized Price'],
+                                             'y': [float(parse_price[1]), round(reprice, ndigits=2)],
+                                             'type': 'bar',
+                                             'name': 'SF'},
+                                        ],
+                                        'layout': {
+                                            'title': 'Reprice'
+                                        }
+                                    }
+                                ),
+                            ),
+                            dbc.Col(
+                                [
+                                    dbc.Row(
+                                        dbc.Card(
+                                            [
+                                                dbc.CardHeader("Old Price"),
+                                                dbc.CardBody(
+                                                    html.H5(round(float(parse_price[1]), ndigits=2)),
+                                                ),
+                                            ]
+                                        ),
+                                    ),
+                                    html.Br(),
+                                    dbc.Row(
+                                        dbc.Card(
+                                            [
+                                                dbc.CardHeader("New Price"),
+                                                dbc.CardBody(
+                                                    html.H5(round(reprice, ndigits=2)),
+                                                ),
+                                            ]
+                                        ),
+                                    ),
+                                    html.Br(),
+                                    dbc.Row(
+                                        dbc.Card(
+                                            [
+                                                dbc.CardHeader("Percentage Change Between Current and New Price"),
+                                                dbc.CardBody(
+                                                    html.H5("%" + str(round(percentage_change, ndigits=2))),
+                                                ),
+                                            ]
+                                        ),
+                                    ),
+                                ]
+                            ),
+                        ],
+                        align="center",
+                    ),
+                ),
+            ),
+            return dash.no_update, explain_layout
 
 
 @callback(

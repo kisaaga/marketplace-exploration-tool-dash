@@ -1,6 +1,6 @@
 from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
-from pages import dashboard, sales, inventory, stats, finances, shipping, messages, reviews, settings
+from pages import dashboard, sales, inventory, stats, settings
 
 app = Dash(external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
 
@@ -32,10 +32,6 @@ sidebar = html.Div(
                 dbc.NavLink("Sales", href="/sales", active="exact"),
                 dbc.NavLink("Inventory", href="/inventory", active="exact"),
                 dbc.NavLink("Stats", href="/stats", active="exact"),
-                dbc.NavLink("Finances", href="/finances", active="exact"),
-                dbc.NavLink("Shipping", href="/shipping", active="exact"),
-                dbc.NavLink("Messages", href="/messages", active="exact"),
-                dbc.NavLink("Reviews", href="/reviews", active="exact"),
                 dbc.NavLink("Settings", href="/settings", active="exact"),
             ],
             vertical=True,
@@ -63,14 +59,6 @@ def display_page(pathname):
         return inventory.layout
     elif pathname == '/stats':
         return stats.layout
-    elif pathname == '/finances':
-        return finances.layout
-    elif pathname == '/shipping':
-        return shipping.layout
-    elif pathname == '/messages':
-        return messages.layout
-    elif pathname == '/reviews':
-        return reviews.layout
     elif pathname == '/settings':
         return settings.layout
     else:

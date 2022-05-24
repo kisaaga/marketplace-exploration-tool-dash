@@ -1,5 +1,4 @@
-from dash import dcc, html, dash_table, Input, Output, callback, State
-import plotly.express as px
+from dash import dcc, html, Input, Output, callback
 import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
 import pandas as pd
