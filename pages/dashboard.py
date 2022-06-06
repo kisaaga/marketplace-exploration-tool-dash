@@ -309,13 +309,13 @@ tab1_content = dbc.Card(
                         id="cost_Summary",
                         children=[],
                         style={
-                            "width": 600
+                            "width": 575
                         }
                     ),
                     html.Div(
                         id="cost_Time", children=[],
                         style={
-                            "width": 600
+                            "width": 575
                         }
                     ),
                 ]
@@ -334,13 +334,13 @@ tab2_content = dbc.Card(
                         id="revenue_Summary",
                         children=[],
                         style={
-                            "width": 600
+                            "width": 575
                         }
                     ),
                     html.Div(
                         id="revenue_Time", children=[],
                         style={
-                            "width": 600
+                            "width": 575
                         }
                     ),
                 ]
@@ -360,13 +360,13 @@ tab3_content = dbc.Card(
                         id="profit_Summary",
                         children=[],
                         style={
-                            "width": 600
+                            "width": 575
                         }
                     ),
                     html.Div(
                         id="profit_Time", children=[],
                         style={
-                            "width": 600
+                            "width": 575
                         }
                     ),
                 ]

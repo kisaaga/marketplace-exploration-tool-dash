@@ -344,20 +344,26 @@ def reprice_func(n_click1, n2, selected_rows):
                     dbc.Row(
                         [
                             dbc.Col(
-
-                                dcc.Graph(
-                                    figure={
-                                        'data': [
-                                            {'x': ['Current Price', 'Optimized Price'],
-                                             'y': [float(parse_price[1]), round(reprice, ndigits=2)],
-                                             'type': 'bar',
-                                             'name': 'SF'},
-                                        ],
-                                        'layout': {
-                                            'title': 'Reprice'
-                                        }
-                                    }
-                                ),
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        html.Div(
+                                            html.P(
+                                                "Our machine learning algorithm examines all other similar products and "
+                                                "analyses the main trends among these listings from other sellers. The main "
+                                                "features which our model takes into account are brand, color, build material "
+                                                "and other special features like wireless charging ability for a phone case. "
+                                                "Another important point is the competition in the market for that specific "
+                                                "product. Our algorithm also considers the total number of sellers while "
+                                                "calculating the optimized price for that product. ",
+                                                className='text-center',
+                                                style={
+                                                    'font-size': '18px',
+                                                    'textAlign': 'justify',
+                                                }
+                                            ),
+                                        )
+                                    )
+                                )
                             ),
                             dbc.Col(
                                 [
