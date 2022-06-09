@@ -238,39 +238,6 @@ FutureContent = dbc.Row(
                 ],
             ),
         ),
-        dbc.Col(
-            dbc.Card(
-                [
-                    dbc.CardHeader(html.H5("Projected ROI"), ),
-                    dbc.CardBody(
-                        [
-                            dbc.Row(
-                                dbc.Col(
-                                    [
-                                        html.H6("Number of months"),
-                                        dcc.Slider(1, 12, 1, value=1, marks=None,
-                                                   id="futureRoiSlider",
-                                                   tooltip={"placement": "bottom", "always_visible": True}),
-                                    ],
-                                ),
-                            ),
-                            html.Hr(),
-                            dbc.Row(
-                                dbc.Col(
-                                    html.H3(
-                                        [
-                                            FutureRoi,
-                                        ],
-                                        id="futureRoi",
-                                        className="card-text",
-                                    ),
-                                ),
-                            ),
-                        ],
-                    ),
-                ],
-            ),
-        ),
     ]
 ),
 
@@ -455,18 +422,8 @@ def future_unit_slider(n):
 )
 def future_profit_slider(n):
     sale_num, day_list = get_sales_from_model(df, n, 'Month')
-    profit_num = (sale_num*ProfitMonth)/UnitMonth
+    profit_num = (sale_num * ProfitMonth) / UnitMonth
     return str(int(profit_num)) + " $"
-
-
-@callback(
-    Output("futureRoi", "children"),
-    Input("futureRoiSlider", "value"),
-)
-def future_roi_slider(n):
-    sale_num, day_list = get_sales_from_model(df, n, 'Month')
-    roi_num = (sale_num * RoiMonth) / UnitMonth
-    return str(87) + " %"
 
 
 @callback(

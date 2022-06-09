@@ -315,7 +315,11 @@ def reprice_func(n_click1, n2, selected_rows):
 
         is_changed = 0
 
-        parse_price_float = int(parse_price_int[0]) / int(parse_price_int[0]) * 100
+        parse_price_float = int(parse_price_int[0]) + (int(parse_price_int[0]) / 100)
+
+        print(parse_price_int)
+        print(float(reprice))
+        print(parse_price_float)
 
         if float(reprice) > parse_price_float:
             is_changed = 1
@@ -413,29 +417,7 @@ def reprice_func(n_click1, n2, selected_rows):
                                 )
                             ),
                             dbc.Col(
-                                [
-                                    dbc.Row(
-                                        dbc.Card(
-                                            [
-                                                dbc.CardHeader("Price Increasing Factor"),
-                                                dbc.CardBody(
-                                                    html.H5(round(float(parse_price[1]), ndigits=2)),
-                                                ),
-                                            ]
-                                        ),
-                                    ),
-                                    html.Br(),
-                                    dbc.Row(
-                                        dbc.Card(
-                                            [
-                                                dbc.CardHeader("Price Decreasing Factor"),
-                                                dbc.CardBody(
-                                                    html.H5(round(reprice, ndigits=2)),
-                                                ),
-                                            ]
-                                        ),
-                                    ),
-                                ]
+                                children=render_func(price_increaser, price_decreaser, is_changed)
                             ),
                         ],
                         align="center",
@@ -443,6 +425,58 @@ def reprice_func(n_click1, n2, selected_rows):
                 ),
             ),
             return dash.no_update, explain_layout
+
+
+def render_func(price_increaser, price_decreaser, is_changed):
+    render_component = []
+    print(is_changed)
+    if is_changed == 1:
+        for i in range(len(price_increaser)):
+            if i == 3:
+                break
+            render_component.append(
+                dbc.Row(
+                    dbc.Card(
+                        [
+                            dbc.CardHeader("Price Increasing Factor"),
+                            dbc.CardBody(
+                                html.P(
+                                    "One of the factors that contributed to the projected increase on the price is " +
+                                    price_increaser[i] + " feature."),
+                            ),
+                        ]
+                    ),
+                ),
+            )
+            render_component.append(html.Br())
+        if render_component[-1] == html.Br():
+            render_component.pop()
+    elif is_changed == -1:
+        for i in range(len(price_decreaser)):
+            if i == 3:
+                break
+            render_component.append(
+                dbc.Row(
+                    dbc.Card(
+                        [
+                            dbc.CardHeader("Price Decreasing Factor"),
+                            dbc.CardBody(
+                                html.P(
+                                    "One of the factors that contributed to the projected decrease on the price is lack of" +
+                                    price_decreaser[i] + " feature."),
+                            ),
+                        ]
+                    ),
+                ),
+            )
+            render_component.append(html.Br())
+        if render_component[-1] == html.Br():
+            render_component.pop()
+    else:
+        increase_text = "sabittt"
+        decrease_text = "sabittt"
+    print(render_component)
+    return render_component
 
 
 @callback(
@@ -466,6 +500,7 @@ def toggle_demo_modal(n1, is_open):
 )
 def demo_project(n1, n2, month):
     button_clicked = ctx.triggered_id
+    global reprice
     demo_graph_layout = dbc.Card()
     if button_clicked == "profit_project_button":
         demo_graph_layout = dbc.Card(
