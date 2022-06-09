@@ -2,8 +2,8 @@ import pandas as pd
 from dash import dash_table, html, Input, Output, callback
 import dash_bootstrap_components as dbc
 
-df = pd.read_csv('data/sales_data.csv')
-df = df.drop(columns=['Lookup_Id', 'Lookup_Price', 'Lookup_Name'])
+df = pd.read_csv('data/Sales Data.csv')
+df = df.drop(columns=['Lookup Id', 'Lookup Price', 'LookUp Name'])
 
 layout = html.Div([
     html.H1('Sales'),
