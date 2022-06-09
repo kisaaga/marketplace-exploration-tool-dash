@@ -76,7 +76,7 @@ demo_modal = dbc.Modal(
                         dbc.Row(
                             children=[
                                 dbc.Button(
-                                    "Project for profit",
+                                    "Project For Profit",
                                     id="profit_project_button",
                                     className="me-1",
                                     n_clicks=0,
@@ -85,7 +85,7 @@ demo_modal = dbc.Modal(
                                     }
                                 ),
                                 dbc.Button(
-                                    "Project for sales",
+                                    "Project For Sales",
                                     id="sales_project_button",
                                     className="me-1",
                                     n_clicks=0,
@@ -155,6 +155,16 @@ layout = html.Div([
                         },
                         data=df.to_dict('records'),
                         editable=True,
+                        style_cell={'textAlign': 'left'},
+                        css=[{
+                            'selector': '.dash-spreadsheet td div',
+                            'rule': '''
+                            line-height: 30px;
+                            max-height: 40px; min-height: 40px; height: 40px;
+                            display: block;
+                            overflow-y: auto;
+                            '''
+                        }],
                         filter_action="native", sort_action="native",
                         sort_mode="multi",
                         column_selectable=False,
@@ -164,6 +174,8 @@ layout = html.Div([
                         page_action="native",
                         page_current=0,
                         page_size=10,
+                        fill_width=False,
+                        style_table={'overflowX': 'auto'},
                     ),
                     dbc.Button('Reprice', id='reprice-button', n_clicks=0),
                     reprice_modal,
@@ -233,6 +245,8 @@ def reprice_func(n_click1, n2, selected_rows):
     button_clicked = ctx.triggered_id
     global reprice
     if len(selected_rows) > 0:
+        price_increaser = []
+        price_decreaser = []
         row_index = selected_rows[0]
         parse_price = df.loc[row_index]['Price'].split('$')
         parse_price_int = parse_price[1].split('.')
@@ -245,35 +259,68 @@ def reprice_func(n_click1, n2, selected_rows):
 
         if 'Wireless Charging Compatible' in df_temp['Special-Feature']:
             df_temp['Wireless Charging Compatible'] = 1
+            price_increaser.append('Wireless Charging Compatible')
         else:
+            price_decreaser.append('Wireless Charging Compatible')
             df_temp['Wireless Charging Compatible'] = 0
 
-        if 'Wireless Charging Compatible' in df_temp['Special-Feature']:
+        if 'Magnetic' in df_temp['Special-Feature']:
+            price_increaser.append('Magnetic')
             df_temp['Magnetic'] = 1
         else:
+            price_decreaser.append('Magnetic')
             df_temp['Magnetic'] = 1
 
         if 'Faux Letter' in df_temp['Material']:
+            price_decreaser.append('Faux Letter')
             df_temp['Faux Leather'] = 1
         else:
+            price_decreaser.append('Faux Letter')
             df_temp['Faux Leather'] = 0
 
         df_temp['Overall_Rating'] = df_temp['Overall-Rating']
 
         parse_rating = df.loc[row_index]['Overall-Rating'].split(' ')
         parse_rating_int = parse_rating[0]
+
+        if float(parse_rating_int) > 3.5:
+            price_increaser.append('High rating')
+        else:
+            price_decreaser.append('Low rating')
+
         df_temp['Overall_Rating'] = parse_rating_int
 
         parse_reviews = df.loc[row_index]['Total-Reviews'].split(' ')
-        parse_reviews_int = parse_reviews[0]
+        parse_reviews_temp = parse_reviews[0]
+        parse_reviews_split = parse_reviews_temp.split(".")
+
+        if len(parse_reviews_split) == 2:
+            parse_reviews_int = str((int(parse_reviews_split[0]) * 1000) + int(parse_reviews_split[1]))
+        else:
+            parse_reviews_int = parse_reviews_split[0]
+
+        if int(parse_reviews_int) >= 500:
+            price_increaser.append('High review count')
+        else:
+            price_decreaser.append('Low review count')
+
         df_temp['Total-Reviews'] = parse_reviews_int
 
         for col in df_temp.columns:
             if col not in cols:
                 df_temp = df_temp.drop(col, axis=1)
-        reprice = get_price_from_model(df_temp)
-        reprice = reprice[0]
+        reprice_res = get_price_from_model(df_temp)
+        reprice = reprice_res[0]
         percentage_change = ((reprice - int(parse_price_int[0])) / int(parse_price_int[0])) * 100
+
+        is_changed = 0
+
+        parse_price_float = int(parse_price_int[0]) / int(parse_price_int[0]) * 100
+
+        if float(reprice) > parse_price_float:
+            is_changed = 1
+        else:
+            is_changed = -1
 
         if button_clicked == "reprice-button":
             reprice_layout = dbc.Card(
@@ -370,7 +417,7 @@ def reprice_func(n_click1, n2, selected_rows):
                                     dbc.Row(
                                         dbc.Card(
                                             [
-                                                dbc.CardHeader("Old Price"),
+                                                dbc.CardHeader("Price Increasing Factor"),
                                                 dbc.CardBody(
                                                     html.H5(round(float(parse_price[1]), ndigits=2)),
                                                 ),
@@ -381,20 +428,9 @@ def reprice_func(n_click1, n2, selected_rows):
                                     dbc.Row(
                                         dbc.Card(
                                             [
-                                                dbc.CardHeader("New Price"),
+                                                dbc.CardHeader("Price Decreasing Factor"),
                                                 dbc.CardBody(
                                                     html.H5(round(reprice, ndigits=2)),
-                                                ),
-                                            ]
-                                        ),
-                                    ),
-                                    html.Br(),
-                                    dbc.Row(
-                                        dbc.Card(
-                                            [
-                                                dbc.CardHeader("Percentage Change Between Current and New Price"),
-                                                dbc.CardBody(
-                                                    html.H5("%" + str(round(percentage_change, ndigits=2))),
                                                 ),
                                             ]
                                         ),
@@ -439,7 +475,7 @@ def demo_project(n1, n2, month):
                         {'x': [1, 2], 'y': [45, 35], 'type': 'bar', 'name': 'SF'},
                     ],
                     'layout': {
-                        'title': 'Repriceee'
+                        'title': 'Project For Profit'
                     }
                 }
             ),
@@ -452,7 +488,7 @@ def demo_project(n1, n2, month):
                         {'x': [1, 2], 'y': [12, 35], 'type': 'bar', 'name': 'SF'},
                     ],
                     'layout': {
-                        'title': 'Repriceee'
+                        'title': 'Project For Sales'
                     }
                 }
             ),

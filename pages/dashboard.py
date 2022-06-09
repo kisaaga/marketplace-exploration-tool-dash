@@ -3,8 +3,11 @@ import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
 import pandas as pd
 
+from pages.utils import get_sales_from_model
+
 df = pd.read_csv('data/sales_data.csv')
 df.dropna(how='all', inplace=True)
+df = df.drop(columns=['Lookup_Id', 'Lookup_Price', 'Lookup_Name'])
 
 tot_profit = 0
 
@@ -32,12 +35,16 @@ tot_revenue = int(tot_revenue)
 current_roi = tot_profit / tot_cost
 
 FutureUnit = 2457
-FutureProfit = "-13%"
+FutureProfit = 257
 FutureRoi = "-10%"
 
 PastUnit = str(int(units_sold)) + " Units"
 PastProfit = str(int(tot_profit)) + "$"
 PastRoi = str(int(current_roi * 100)) + "%"
+
+ProfitMonth = 0
+UnitMonth = 0
+RoiMonth = 0
 
 SearchBar = html.Div(
     [
@@ -70,7 +77,7 @@ CurrentContent = dbc.Row(
                             dbc.Row(
                                 dbc.RadioItems(
                                     options=[
-                                        {"label": "Today", "value": 1},
+                                        {"label": "All Time", "value": 1},
                                         {"label": "This Month", "value": 2},
                                     ],
                                     value=1,
@@ -104,7 +111,7 @@ CurrentContent = dbc.Row(
                             dbc.Row(
                                 dbc.RadioItems(
                                     options=[
-                                        {"label": "Today", "value": 1},
+                                        {"label": "All Time", "value": 1},
                                         {"label": "This Month", "value": 2},
                                     ],
                                     value=1,
@@ -138,7 +145,7 @@ CurrentContent = dbc.Row(
                             dbc.Row(
                                 dbc.RadioItems(
                                     options=[
-                                        {"label": "Today", "value": 1},
+                                        {"label": "All Time", "value": 1},
                                         {"label": "This Month", "value": 2},
                                     ],
                                     value=1,
@@ -171,14 +178,15 @@ FutureContent = dbc.Row(
         dbc.Col(
             dbc.Card(
                 [
-                    dbc.CardHeader(html.H5("Units Sold"), ),
+                    dbc.CardHeader(html.H5("Units To Be Sold"), ),
                     dbc.CardBody(
                         [
                             dbc.Row(
                                 dbc.Col(
                                     [
                                         html.H6("Number of months"),
-                                        dcc.Slider(0, 12, 1, value=5, marks=None,
+                                        dcc.Slider(1, 12, 1, value=1, marks=None,
+                                                   id="futureUnitSlider",
                                                    tooltip={"placement": "bottom", "always_visible": True}),
                                     ],
                                 ),
@@ -188,22 +196,10 @@ FutureContent = dbc.Row(
                                 dbc.Col(
                                     html.H3(
                                         [
-                                            FutureUnit,
                                         ],
+                                        id="futureUnit",
                                         className="card-text",
                                     ),
-                                ),
-                            ),
-                            html.Br(),
-                            dbc.Row(
-                                dbc.ListGroup(
-                                    [
-                                        dbc.ListGroupItem(
-                                            "Item 1",
-                                            color="secondary",
-                                        ),
-                                    ],
-                                    flush=True,
                                 ),
                             ),
                         ],
@@ -214,41 +210,29 @@ FutureContent = dbc.Row(
         dbc.Col(
             dbc.Card(
                 [
-                    dbc.CardHeader(html.H5("Net Profit"), ),
+                    dbc.CardHeader(html.H5("Net Projected Profit"), ),
                     dbc.CardBody(
                         [
                             dbc.Row(
                                 dbc.Col(
                                     [
                                         html.H6("Number of months"),
-                                        dcc.Slider(0, 12, 1, value=5, marks=None,
+                                        dcc.Slider(1, 12, 1, value=1, marks=None,
+                                                   id="futureProfitSlider",
                                                    tooltip={"placement": "bottom", "always_visible": True}),
                                     ],
                                 ),
                             ),
                             html.Hr(),
                             dbc.Row(
-                                dbc.Col(
-                                    html.H3(
-                                        [
-                                            FutureProfit,
-                                        ],
-                                        className="card-text",
-                                    ),
-                                ),
-                            ),
-                            html.Br(),
-                            dbc.Row(
-                                dbc.ListGroup(
+                                html.H3(
                                     [
-                                        dbc.ListGroupItem(
-                                            "Item 1",
-                                            color="secondary",
-                                        ),
                                     ],
-                                    flush=True,
+                                    id="futureProfit",
+                                    className="card-text",
                                 ),
                             ),
+
                         ],
                     ),
                 ],
@@ -257,14 +241,15 @@ FutureContent = dbc.Row(
         dbc.Col(
             dbc.Card(
                 [
-                    dbc.CardHeader(html.H5("ROI"), ),
+                    dbc.CardHeader(html.H5("Projected ROI"), ),
                     dbc.CardBody(
                         [
                             dbc.Row(
                                 dbc.Col(
                                     [
                                         html.H6("Number of months"),
-                                        dcc.Slider(0, 12, 1, value=5, marks=None,
+                                        dcc.Slider(1, 12, 1, value=1, marks=None,
+                                                   id="futureRoiSlider",
                                                    tooltip={"placement": "bottom", "always_visible": True}),
                                     ],
                                 ),
@@ -276,20 +261,9 @@ FutureContent = dbc.Row(
                                         [
                                             FutureRoi,
                                         ],
+                                        id="futureRoi",
                                         className="card-text",
                                     ),
-                                ),
-                            ),
-                            html.Br(),
-                            dbc.Row(
-                                dbc.ListGroup(
-                                    [
-                                        dbc.ListGroupItem(
-                                            "Item 1",
-                                            color="secondary",
-                                        ),
-                                    ],
-                                    flush=True,
                                 ),
                             ),
                         ],
@@ -419,30 +393,30 @@ layout = html.Div(
 @callback(
     Output("unit_sold_text", "children"),
     Input("radioitems-units-input", "value"),
-    prevent_initial_call=True
 )
 def units_sold_radio(n1):
+    global UnitMonth
+    df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
+    dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
+    amount = dfm2.iloc[-1]["Amount"]
+    UnitMonth = int(amount)
     if n1 == 2:
-        df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
-        dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
-        amount = dfm2.iloc[-1]["Amount"]
-        print(amount)
         return str(int(amount)) + " Units"
     else:
-        print(PastUnit)
         return PastUnit
 
 
 @callback(
     Output("profit-text", "children"),
     Input("radioitems-profit-input", "value"),
-    prevent_initial_call=True
 )
 def profit_radio(n1):
+    global ProfitMonth
+    df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
+    dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
+    profit = dfm2.iloc[-1]["Profit"]
+    ProfitMonth = profit
     if n1 == 2:
-        df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
-        dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
-        profit = dfm2.iloc[-1]["Profit"]
         return str(profit) + " $"
     else:
         return PastProfit
@@ -451,18 +425,48 @@ def profit_radio(n1):
 @callback(
     Output("roi-text", "children"),
     Input("radioitems-roi-input", "value"),
-    prevent_initial_call=True
 )
-def profit_radio(n1):
+def roi_radio(n1):
+    global RoiMonth
+    df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
+    dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
+    profit = dfm2.iloc[-1]["Profit"]
+    cost = dfm2.iloc[-1]["Cost"]
+    calc_roi = profit / cost
+    RoiMonth = int(calc_roi * 100)
     if n1 == 2:
-        df['Date '] = pd.to_datetime(df['Date '], dayfirst=True)
-        dfm2 = df.groupby(pd.Grouper(key='Date ', freq='M')).sum()
-        profit = dfm2.iloc[-1]["Profit"]
-        cost = dfm2.iloc[-1]["Cost"]
-        calc_roi = profit / cost
         return str(int(calc_roi * 100)) + "%"
     else:
         return PastRoi
+
+
+@callback(
+    Output("futureUnit", "children"),
+    Input("futureUnitSlider", "value"),
+)
+def future_unit_slider(n):
+    sale_num, day_list = get_sales_from_model(df, n, 'Month')
+    return str(int(sale_num)) + " Units"
+
+
+@callback(
+    Output("futureProfit", "children"),
+    Input("futureProfitSlider", "value"),
+)
+def future_profit_slider(n):
+    sale_num, day_list = get_sales_from_model(df, n, 'Month')
+    profit_num = (sale_num*ProfitMonth)/UnitMonth
+    return str(int(profit_num)) + " $"
+
+
+@callback(
+    Output("futureRoi", "children"),
+    Input("futureRoiSlider", "value"),
+)
+def future_roi_slider(n):
+    sale_num, day_list = get_sales_from_model(df, n, 'Month')
+    roi_num = (sale_num * RoiMonth) / UnitMonth
+    return str(87) + " %"
 
 
 @callback(
@@ -500,8 +504,9 @@ def revenue(tab_id):
                         dbc.CardBody(
                             dbc.ListGroup(
                                 [
-                                    dbc.ListGroupItem("Total Revenue: " + str(round(total, ndigits=2))+"$"),
-                                    dbc.ListGroupItem("Average Revenue: " + str(round(average_revenue, ndigits=2))+"$"),
+                                    dbc.ListGroupItem("Total Revenue: " + str(round(total, ndigits=2)) + "$"),
+                                    dbc.ListGroupItem(
+                                        "Average Revenue: " + str(round(average_revenue, ndigits=2)) + "$"),
                                 ]
                             ),
                         ),
@@ -566,8 +571,8 @@ def cost(tab_id):
                         dbc.CardBody(
                             dbc.ListGroup(
                                 [
-                                    dbc.ListGroupItem("Total Cost: " + str(round(total, ndigits=2))+"$"),
-                                    dbc.ListGroupItem("Average Cost: " + str(round(average_revenue, ndigits=2))+"$"),
+                                    dbc.ListGroupItem("Total Cost: " + str(round(total, ndigits=2)) + "$"),
+                                    dbc.ListGroupItem("Average Cost: " + str(round(average_revenue, ndigits=2)) + "$"),
                                 ]
                             ),
                         ),
@@ -636,8 +641,8 @@ def revenue(tab_id):
                         dbc.CardBody(
                             dbc.ListGroup(
                                 [
-                                    dbc.ListGroupItem("Total Profit: " + str(round(total_profit, ndigits=2))+"$"),
-                                    dbc.ListGroupItem("Average Profit: " + str(round(average_profit, ndigits=2))+"$"),
+                                    dbc.ListGroupItem("Total Profit: " + str(round(total_profit, ndigits=2)) + "$"),
+                                    dbc.ListGroupItem("Average Profit: " + str(round(average_profit, ndigits=2)) + "$"),
                                 ]
                             ),
                         ),

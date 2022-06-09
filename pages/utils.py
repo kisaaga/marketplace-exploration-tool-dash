@@ -9,11 +9,12 @@ def get_price_from_model(item_information):
     prediction = model.predict(encoded_data)
     return prediction
 
-def get_sales_from_model(data, k, week_or_month):
-    ar_model = pickle.load(open('models/Ar_model.pkl', 'rb'))
 
-    future_pred_month = ar_model.predict(start=len(data), end=(len(data) + 30 * k), dynamic=False)
-    future_pred_week = ar_model.predict(start=len(data), end=(len(data) + 7 * k), dynamic=False)
+def get_sales_from_model(dataset, k, week_or_month):
+    ar_model = pickle.load(open('models/Ar_model.pickle', 'rb'))
+
+    future_pred_month = ar_model.predict(start=len(dataset), end=(len(dataset) + 30 * k), dynamic=False)
+    future_pred_week = ar_model.predict(start=len(dataset), end=(len(dataset) + 7 * k), dynamic=False)
     wdaily = []
     mdaily = []
     wpsales = 0
